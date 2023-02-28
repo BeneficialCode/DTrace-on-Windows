@@ -3,13 +3,13 @@
 
 struct ustr{uint16_t buffer[256];};
 
-inline ULONG_PTR MmHighestUserAddress = 0x7FFFFFFEFFFF;
+inline uintptr_t MmHighestUserAddress = 0x7FFFFFFEFFFF;
 
 syscall::Nt*:entry
 {
     if(pid == 4)
     {
-        /* printf("%s [Caller %s] 0x%p, 0x%x\n",probefunc, execname, curthread, tid); */
+        printf("%s [Caller %s] 0x%p, 0x%x\n",probefunc, execname, curthread, tid);
         
         if(probefunc == "NtOpenKey")
         {
@@ -18,7 +18,7 @@ syscall::Nt*:entry
             {
                 temp = ((PUNICODE_STRING)attr->ObjectName)->Buffer;
                 len = ((PUNICODE_STRING)(attr->ObjectName))->Length / 2;
-                printf("%Y: Open RegKeyName:%*.*ws\n",walltimestamp, len,len,
+                printf("%Y: 0x%p Open RegKeyName:%*.*ws\n",walltimestamp,curthread, len,len,
                     ((struct ustr*)temp)->buffer);
             }
         }
@@ -30,7 +30,7 @@ syscall::Nt*:entry
             {
                 temp = ((PUNICODE_STRING)attr->ObjectName)->Buffer;
                 len = ((PUNICODE_STRING)(attr->ObjectName))->Length/2;
-                printf("%Y: Create FileName: %*.*ws\n",walltimestamp, len,len,
+                printf("%Y: 0x%p Create FileName: %*.*ws\n",walltimestamp,curthread, len,len,
                     ((struct ustr*)temp)->buffer);
             }
         }
@@ -39,7 +39,7 @@ syscall::Nt*:entry
         {
             temp = ((PUNICODE_STRING)arg1)->Buffer;
             len = ((PUNICODE_STRING)arg1)->Length/2;
-            printf("%Y: value name: %*.*ws\n",walltimestamp,len,len,
+            printf("%Y: 0x%p value name: %*.*ws\n",walltimestamp,curthread,len,len,
                 ((struct ustr*)temp)->buffer);
         }
 
@@ -50,7 +50,7 @@ syscall::Nt*:entry
             {
                 temp = ((PUNICODE_STRING)attr->ObjectName)->Buffer;
                 len =((PUNICODE_STRING)(attr->ObjectName))->Length / 2;
-                printf("%Y,Open File Name: %*.*ws\n",walltimestamp,len,len,
+                printf("%Y: 0x%p Open File Name: %*.*ws\n",walltimestamp,curthread,len,len,
                     ((struct ustr*)temp)->buffer);
             }
         }
@@ -61,15 +61,14 @@ syscall::Nt*:entry
             {
                 temp = ((PUNICODE_STRING)attr->ObjectName)->Buffer;
                 len = ((PUNICODE_STRING)(attr->ObjectName))->Length / 2;
-                printf("%Y, Create Section Name: %*.*ws\n",walltimestamp,len,len,
+                printf("%Y: 0x%p Create Section Name: %*.*ws\n",walltimestamp,curthread,len,len,
                     ((struct ustr*)temp)->buffer);
             }
         }
 
         if(probefunc == "NtCreateThreadEx"){
             this->addr = (uintptr_t)arg4;
-            if(this->addr > MmHighestUserAddress)
-                printf("%Y: start addr: %p\n",walltimestamp,this->addr);
+            printf("%Y: 0x%p start addr: %p\n",walltimestamp,curthread,this->addr);
         }
 
         if(probefunc == "NtCreateEvent"){
@@ -78,7 +77,7 @@ syscall::Nt*:entry
             {
                 temp = ((PUNICODE_STRING)attr->ObjectName)->Buffer;
                 len = ((PUNICODE_STRING)(attr->ObjectName))->Length / 2;
-                printf("%Y: Create Event Name: %*.*ws\n",walltimestamp,len,len,
+                printf("%Y: 0x%p Create Event Name: %*.*ws\n",walltimestamp,curthread,len,len,
                     ((struct ustr*)temp)->buffer);
             }
         }
@@ -89,13 +88,13 @@ syscall::Nt*:entry
             {
                 temp = ((PUNICODE_STRING)attr->ObjectName)->Buffer;
                 len = ((PUNICODE_STRING)(attr->ObjectName))->Length / 2;
-                printf("%Y: Create SymbolicLinkObject Name: %*.*ws\n",walltimestamp,len,len,
+                printf("%Y: 0x%p Create SymbolicLinkObject Name: %*.*ws\n",walltimestamp,curthread,len,len,
                     ((struct ustr*)temp)->buffer);
             }
         }
 
         if(probefunc == "NtQuerySystemInformation") {
-            printf("%Y: system info class: 0x%x\n",walltimestamp,arg0);
+            printf("%Y: 0x%p system info class: 0x%x\n",walltimestamp,curthread,arg0);
         }
     }
         
